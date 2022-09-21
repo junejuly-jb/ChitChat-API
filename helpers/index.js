@@ -12,4 +12,11 @@ const registrationValidation = (data) => {
     return schema.validate(data)
 }
 
-module.exports = { registrationValidation }
+const loginValidation = (data) => {
+    const schema = Joi.object({
+        email: Joi.string().email().required(),
+    })
+    return schema.validate(data)
+}
+
+module.exports = { registrationValidation, loginValidation }

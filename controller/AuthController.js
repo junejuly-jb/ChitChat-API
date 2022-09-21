@@ -1,7 +1,8 @@
 const User = require("../model/User")
 const bcrypt = require('bcryptjs')
-const { registrationValidation } = require('../helpers')
+const { registrationValidation, loginValidation } = require('../helpers')
 const pusher = require('../pusher')
+const JWT = require('jsonwebtoken')
 
 const register = async (req, res) => {
     const { email, name, password, confirmPassword } = req.body
@@ -24,13 +25,37 @@ const register = async (req, res) => {
 
     try {
         await newUser.save();
-        pusher.trigger("chitchat-registration", "new-user", { data: newUser } );
+        // pusher.trigger("chitchat-registration", "new-user", { data: newUser } );
         return res.status(200).json({ success: true, message: 'User registered successfully'})
     } catch (error) {
         return res.status(400).json({ "success": false, "message": error.message });
     }
 }
 
+const login = async (req, res) => {
+    const { email, password } = req.body
+
+    //validation
+    const { error } = loginValidation({ email })
+    if(error)
+    return res.status(400).json({ success: false, message: error.details[0].message })
+
+    //check if user exists
+    const isRegistered = await checkUserExists(email)
+    if(!isRegistered)
+    return res.status(401).json({ success: false, status: 401, message: 'Invalid user credentials'})
+
+    const isPasswordMatch = await bcrypt.compare(password, isRegistered.password);
+    if(!isPasswordMatch)
+    return res.status(401).json({ success: false, status: 401, message: 'Invalid user credentials'})
+
+    const token = JWT.sign({ _id: isRegistered._id }, process.env.PASS_PHRASE, { expiresIn: '1d' })
+    return res.status(200).json({
+        success: true,
+        status: 200,
+        token, user: isRegistered
+    })
+}
 
 const checkUserExists = async (userEmail) => {
     let foundUser = await User.findOne({ email: userEmail })
@@ -47,4 +72,4 @@ const getInitials = (string) => {
     return initials;
 }
 
-module.exports = { register }
+module.exports = { register, login }
