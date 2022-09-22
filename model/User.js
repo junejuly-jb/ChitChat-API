@@ -5,7 +5,11 @@ const userSchema = new Schema({
     name: String,
     email: String,
     initials: String,
-    password: String
+    password: String,
+    isOnline: {
+      type: Boolean,
+      default: false
+    }
 }, { timestamps: true })
 
 userSchema.methods.toJSON = function() {
