@@ -50,9 +50,11 @@ const login = async (req, res) => {
     return res.status(401).json({ success: false, status: 401, message: 'Invalid user credentials'})
 
     const token = JWT.sign({ _id: isRegistered._id }, process.env.PASS_PHRASE, { expiresIn: '1d' })
+    const exp = JWT.decode(token)
     return res.status(200).json({
         success: true,
         status: 200,
+        expiration: exp.exp, 
         token, user: isRegistered
     })
 }
