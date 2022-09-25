@@ -26,9 +26,9 @@ const register = async (req, res) => {
     try {
         await newUser.save();
         // pusher.trigger("chitchat-registration", "new-user", { data: newUser } );
-        return res.status(200).json({ success: true, message: 'User registered successfully'})
+        return res.status(200).json({ status: 200, success: true, message: 'User registered successfully'})
     } catch (error) {
-        return res.status(400).json({ "success": false, "message": error.message });
+        return res.status(500).json({ status: 500, success: false, message: error.message });
     }
 }
 
