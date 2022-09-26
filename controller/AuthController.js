@@ -25,7 +25,7 @@ const register = async (req, res) => {
 
     try {
         await newUser.save();
-        // pusher.trigger("chitchat-registration", "new-user", { data: newUser } );
+        // pusher.trigger("chitchat", "new-user", { data: newUser } );
         return res.status(200).json({ status: 200, success: true, message: 'User registered successfully'})
     } catch (error) {
         return res.status(500).json({ status: 500, success: false, message: error.message });
@@ -52,6 +52,8 @@ const login = async (req, res) => {
     await User.findOneAndUpdate({ _id: isRegistered._id }, { isOnline: true })
     const token = JWT.sign({ _id: isRegistered._id }, process.env.PASS_PHRASE, { expiresIn: '1d' })
     const exp = JWT.decode(token)
+
+    // pusher.trigger("chitchat", "online", { data: { _id: isRegistered._id, isOnline: true } } );
     return res.status(200).json({
         success: true,
         status: 200,
@@ -63,6 +65,7 @@ const login = async (req, res) => {
 const logout = async (req, res) => {
     try {
         await User.findOneAndUpdate({ _id: req.user._id }, { isOnline: false })
+        // pusher.trigger("chitchat", "offline", { data: { _id: req.user._id, isOnline: false } } );
         return res.status(200).json({ status: 200, success: true, message: 'logout successfully' });
     } catch (error) {
         return res.status(500).json({ status: 500, success: false, message: error.message });
