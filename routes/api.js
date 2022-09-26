@@ -2,10 +2,15 @@ const api = require('express').Router();
 const auth = require('../middleware/auth')
 const AuthController = require('../controller/AuthController')
 const ChatController = require('../controller/ChatController')
+const UserController = require('../controller/UserController')
 
 //auth
 api.post('/register', AuthController.register)
 api.post('/login', AuthController.login)
+api.post('/logout', auth, AuthController.logout)
+
+//user
+api.get('/users', auth, UserController.getUsers)
 
 //messaging
 api.post('/send/:id', auth, ChatController.sendMessage)

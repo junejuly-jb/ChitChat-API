@@ -49,6 +49,7 @@ const login = async (req, res) => {
     if(!isPasswordMatch)
     return res.status(401).json({ success: false, status: 401, message: 'Invalid user credentials'})
 
+    await User.findOneAndUpdate({ _id: isRegistered._id }, { isOnline: true })
     const token = JWT.sign({ _id: isRegistered._id }, process.env.PASS_PHRASE, { expiresIn: '1d' })
     const exp = JWT.decode(token)
     return res.status(200).json({
@@ -57,6 +58,15 @@ const login = async (req, res) => {
         expiration: exp.exp, 
         token, user: isRegistered
     })
+}
+
+const logout = async (req, res) => {
+    try {
+        await User.findOneAndUpdate({ _id: req.user._id }, { isOnline: false })
+        return res.status(200).json({ status: 200, success: true, message: 'logout successfully' });
+    } catch (error) {
+        return res.status(500).json({ status: 500, success: false, message: error.message });
+    }
 }
 
 const checkUserExists = async (userEmail) => {
@@ -74,4 +84,4 @@ const getInitials = (string) => {
     return initials;
 }
 
-module.exports = { register, login }
+module.exports = { register, login, logout }

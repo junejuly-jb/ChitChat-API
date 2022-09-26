@@ -1,8 +1,8 @@
 const Chatroom = require("../model/Chatroom");
 const Message = require("../model/Message");
 
-const addChatRoom = async (participants) => {
-    const newChatRoom = new Chatroom({ participants })
+const addChatRoom = async (participants, message) => {
+    const newChatRoom = new Chatroom({ participants, lastMessage: message })
 
     try {
         await newChatRoom.save();
@@ -17,7 +17,7 @@ const sendMessage = async (req, res) => {
     let { participants, chatRoomID, message} = req.body
 
     if(chatRoomID.length == '0'){
-        const chatroom = await addChatRoom(participants)
+        const chatroom = await addChatRoom(participants, message)
         if(!chatroom.success)
         return res.status(500).json({ success: false, message: 'Error in sending message'})
 
@@ -33,6 +33,7 @@ const sendMessage = async (req, res) => {
 
     try {
         await newMessage.save()
+        await Chatroom.findOneAndUpdate({ _id: chatRoomID }, { lastMessage: message })
         return res.status(200).json({ success: true, message: 'Message sent'})
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message})
@@ -46,6 +47,7 @@ const getChatrooms = async (req, res) => {
     chatrooms.map( (el) => {
         let chat = {
             _id: el._id,
+            message: el.lastMessage,
             createdAt: el.createdAt,
             updatedAt: el.updatedAt
         }
