@@ -53,7 +53,7 @@ const login = async (req, res) => {
     const token = JWT.sign({ _id: isRegistered._id }, process.env.PASS_PHRASE, { expiresIn: '1d' })
     const exp = JWT.decode(token)
 
-    // pusher.trigger("chitchat", "online", { data: { _id: isRegistered._id, isOnline: true } } );
+    pusher.trigger("chitchat", "online", { data: { _id: isRegistered._id, isOnline: true } } );
     return res.status(200).json({
         success: true,
         status: 200,
@@ -87,4 +87,18 @@ const getInitials = (string) => {
     return initials;
 }
 
-module.exports = { register, login, logout }
+const authPusher = async  (req, res) => {
+    const socketId = req.body.socket_id;
+    const channel = req.body.channel_name;
+
+    const user = await User.findOne({ _id: req.user._id })
+    
+    const presenceData = {
+        user_id: user._id,
+        user_info: { name: user.name, initials: user.initials },
+    };
+    const authResponse = pusher.authorizeChannel(socketId, channel, presenceData);
+    res.send(authResponse);
+}
+
+module.exports = { register, login, logout, authPusher }

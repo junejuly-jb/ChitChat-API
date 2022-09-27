@@ -17,11 +17,14 @@ db.once('open', function () {
 //Middlewares
 app.use(express.json({ limit: '50mb' }))
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-app.use(cors())
+app.use(cors({
+    origin: '*',
+    methods: ['GET','POST','DELETE','UPDATE','PUT','PATCH']
+}))
 
 //Routes
 app.use('/api/v1', apiRoutes)
-app.use(function(req, res) {
+app.use(function(req, res, next) { 
     return res.status(404).json({
         success: false,
         status: 404,

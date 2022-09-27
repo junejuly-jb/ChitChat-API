@@ -8,9 +8,11 @@ const UserController = require('../controller/UserController')
 api.post('/register', AuthController.register)
 api.post('/login', AuthController.login)
 api.post('/logout', auth, AuthController.logout)
+api.post('/pusher/user-auth', auth, AuthController.authPusher)
 
 //user
 api.get('/users', auth, UserController.getUsers)
+api.post('/test', UserController.test)
 
 //messaging
 api.post('/send/:id', auth, ChatController.sendMessage)

@@ -9,5 +9,11 @@ const getUsers = async (req, res) => {
     }
 }
 
+const test = (req, res) => {
+    console.log(req.body)
+    console.log('im here')
+    return res.status(200).send('hey')
+}
 
-module.exports = { getUsers }
+
+module.exports = { getUsers, test }
