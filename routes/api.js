@@ -7,7 +7,7 @@ const UserController = require('../controller/UserController')
 //auth
 api.post('/register', AuthController.register)
 api.post('/login', AuthController.login)
-api.post('/logout', auth, AuthController.logout)
+api.post('/logout/:id', auth, AuthController.logout)
 api.post('/pusher/user-auth', auth, AuthController.authPusher)
 
 //user

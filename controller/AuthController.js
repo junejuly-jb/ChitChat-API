@@ -64,9 +64,11 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
     try {
-        await User.findOneAndUpdate({ _id: req.user._id }, { isOnline: false })
-        // pusher.trigger("chitchat", "offline", { data: { _id: req.user._id, isOnline: false } } );
-        return res.status(200).json({ status: 200, success: true, message: 'logout successfully' });
+        const filter = { _id: req.params.id }
+        const update = { isOnline: false }
+        const doc = await User.findOneAndUpdate(filter, update, { new: true })
+        console.log(doc)
+        return res.status(200).send(doc)
     } catch (error) {
         return res.status(500).json({ status: 500, success: false, message: error.message });
     }
