@@ -49,7 +49,7 @@ const login = async (req, res) => {
     if(!isPasswordMatch)
     return res.status(401).json({ success: false, status: 401, message: 'Invalid user credentials'})
 
-    await User.findOneAndUpdate({ _id: isRegistered._id }, { isOnline: true })
+    // await User.findOneAndUpdate({ _id: \isRegistered._id }, { isOnline: true })
     const token = JWT.sign({ _id: isRegistered._id }, process.env.PASS_PHRASE, { expiresIn: '1d' })
     const exp = JWT.decode(token)
 
@@ -62,17 +62,17 @@ const login = async (req, res) => {
     })
 }
 
-const logout = async (req, res) => {
-    try {
-        const filter = { _id: req.params.id }
-        const update = { isOnline: false }
-        const doc = await User.findOneAndUpdate(filter, update, { new: true })
-        console.log(doc)
-        return res.status(200).send(doc)
-    } catch (error) {
-        return res.status(500).json({ status: 500, success: false, message: error.message });
-    }
-}
+// const logout = async (req, res) => {
+//     try {
+//         const filter = { _id: req.params.id }
+//         const update = { isOnline: false }
+//         const doc = await User.findOneAndUpdate(filter, update, { new: true })
+//         console.log(doc)
+//         return res.status(200).send(doc)
+//     } catch (error) {
+//         return res.status(500).json({ status: 500, success: false, message: error.message });
+//     }
+// }
 
 const checkUserExists = async (userEmail) => {
     let foundUser = await User.findOne({ email: userEmail })
@@ -103,4 +103,4 @@ const authPusher = async  (req, res) => {
     res.send(authResponse);
 }
 
-module.exports = { register, login, logout, authPusher }
+module.exports = { register, login, authPusher }
