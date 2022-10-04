@@ -1,5 +1,6 @@
 const Chatroom = require("../model/Chatroom");
 const Message = require("../model/Message");
+const pusher = require("../pusher")
 
 const addChatRoom = async (participants, message) => {
     const newChatRoom = new Chatroom({ participants, lastMessage: message })
@@ -31,10 +32,12 @@ const sendMessage = async (req, res) => {
         message
     })
 
+    pusher.trigger("chitchat", "chat-" + req.params.id, { data: newMessage } );
+    
     try {
-        await newMessage.save()
+        await newMessage.save();
         await Chatroom.findOneAndUpdate({ _id: chatRoomID }, { lastMessage: message })
-        return res.status(200).json({ success: true, message: 'Message sent'})
+        return res.status(200).json({ success: true, message: 'Message sent', data: newMessage})
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message})
     }
