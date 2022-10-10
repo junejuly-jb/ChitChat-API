@@ -3,7 +3,14 @@ const Schema = mongoose.Schema
 
 const chatroomSchema = new Schema({
     participants: Array,
-    lastMessage: String
+    lastMessage: {
+        type: String,
+        require: false
+    },
+    unreadMessages: {
+        type: Array,
+        require: false
+    }
 }, { timestamps: true })
 
 module.exports = mongoose.model('Chatroom', chatroomSchema)

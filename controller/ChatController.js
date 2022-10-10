@@ -2,8 +2,8 @@ const Chatroom = require("../model/Chatroom");
 const Message = require("../model/Message");
 const pusher = require("../pusher")
 
-const addChatRoom = async (participants, message) => {
-    const newChatRoom = new Chatroom({ participants, lastMessage: message })
+const addChatRoom = async (participants) => {
+    const newChatRoom = new Chatroom({ participants })
 
     try {
         await newChatRoom.save();
@@ -17,6 +17,7 @@ const addChatRoom = async (participants, message) => {
 const sendMessage = async (req, res) => {
     let { participants, chatRoomID, message} = req.body
     let chatroom
+    
     if(chatRoomID.length == '0'){
         chatroom = await addChatRoom(participants, message)
         if(!chatroom.success) return res.status(500).json({ success: false, message: 'Error in sending message'})
@@ -30,21 +31,32 @@ const sendMessage = async (req, res) => {
         receiver: req.params.id,
         message
     })
-
-    pusher.trigger("chitchat", "chat-" + req.params.id, { data: newMessage } );
     
     try {
         await newMessage.save();
-        if(chatRoomID.length != '0'){
-            chatroom = await Chatroom.findOneAndUpdate({ _id: chatRoomID }, { lastMessage: message }, { new: true}).lean()
-        }
+
+        chatroom = await Chatroom.findOneAndUpdate(
+            { _id: chatRoomID }, 
+            { lastMessage: message, $push: { unreadMessages: newMessage } }, 
+            { new: true}
+        ).lean()
+
+        let chatRoomForTrigger = {...chatroom}
+        chatRoomForTrigger.participants.map( el => {
+            if(el._id == req.user._id){
+                chatRoomForTrigger.user = el
+            }
+        })
+        chatRoomForTrigger.messages = []
+
         chatroom.participants.map( user => {
             if(user._id != req.user._id){
                 chatroom.user = user
             }
         })
         chatroom.messages = []
-        delete chatroom.participants
+
+        pusher.trigger("chitchat", "chat-" + req.params.id, { data: newMessage, chatroom: chatRoomForTrigger } );
         return res.status(200).json({ success: true, message: 'Message sent', data: newMessage, chatroom})
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message})
@@ -60,7 +72,8 @@ const getChatrooms = async (req, res) => {
             _id: el._id,
             lastMessage: el.lastMessage,
             createdAt: el.createdAt,
-            updatedAt: el.updatedAt
+            updatedAt: el.updatedAt,
+            unreadMessages: el.unreadMessages
         }
         el.participants.map( user => {
             if(user._id != req.user._id){
@@ -92,4 +105,17 @@ const deleteMessage = async (req, res) => {
     }
 }
 
-module.exports = { sendMessage, getChatrooms, getMessages, deleteMessage }
+const readMessages = async (req, res) => {
+    try {
+        await Chatroom.updateOne({ _id: req.params.id},{
+            $pullAll:{
+                unreadMessages: [{ receiver: req.user._id }]
+            }
+        })
+        return res.status(200).json({ success: true, message: "Messages read successfully"})
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message })
+    }
+}
+
+module.exports = { sendMessage, getChatrooms, getMessages, deleteMessage, readMessages }
