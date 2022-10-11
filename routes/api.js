@@ -7,7 +7,6 @@ const UserController = require('../controller/UserController')
 //auth
 api.post('/register', AuthController.register)
 api.post('/login', AuthController.login)
-// api.post('/logout/:id', auth, AuthController.logout)
 api.post('/pusher/user-auth', auth, AuthController.authPusher)
 
 //user
@@ -19,5 +18,6 @@ api.post('/send/:id', auth, ChatController.sendMessage)
 api.get('/chatrooms', auth, ChatController.getChatrooms)
 api.get('/message/:chatroomid', auth, ChatController.getMessages)
 api.delete('/message/:chatroomid', auth, ChatController.deleteMessage)
+api.get('/read/:chatroomid', auth, ChatController.readMessages)
 
 module.exports = api

@@ -1,6 +1,7 @@
 const Chatroom = require("../model/Chatroom");
 const Message = require("../model/Message");
 const pusher = require("../pusher")
+var ObjectId = require('mongoose').Types.ObjectId;
 
 const addChatRoom = async (participants) => {
     const newChatRoom = new Chatroom({ participants })
@@ -107,12 +108,16 @@ const deleteMessage = async (req, res) => {
 
 const readMessages = async (req, res) => {
     try {
-        await Chatroom.updateOne({ _id: req.params.id},{
-            $pullAll:{
-                unreadMessages: [{ receiver: req.user._id }]
-            }
-        })
-        return res.status(200).json({ success: true, message: "Messages read successfully"})
+        const chatroom = await Chatroom.findOneAndUpdate(
+            { _id: new ObjectId(req.params.chatroomid) },  
+            {
+                $pull :{
+                    unreadMessages: { receiver: new ObjectId(req.user._id) }
+                }
+            },
+            { new: true, multi: true }
+        )
+        return res.status(200).json({ success: true, message: "Messages read successfully", chatroom})
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message })
     }
