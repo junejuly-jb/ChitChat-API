@@ -9,13 +9,11 @@ const register = async (req, res) => {
 
     //validation
     const { error } = registrationValidation({ name, email, password, confirmPassword })
-    if(error)
-    return res.status(400).json({ success: false, message: error.details[0].message })
+    if(error) return res.status(400).json({ status:400, success: false, message: error.details[0].message })
 
     //check if user exists
     const exists = await checkUserExists(email)
-    if(exists)
-    return res.status(403).json({ success: false, status: 403, message: 'User already exists'})
+    if(exists) return res.status(403).json({ success: false, status: 403, message: 'User already exists'})
 
     //password hashing
     const salt = await bcrypt.genSalt(10)
@@ -37,19 +35,16 @@ const login = async (req, res) => {
 
     //validation
     const { error } = loginValidation({ email })
-    if(error)
-    return res.status(400).json({ success: false, message: error.details[0].message })
+    if(error) return res.status(400).json({ status: 400, success: false, message: error.details[0].message })
 
     //check if user exists
     const isRegistered = await checkUserExists(email)
-    if(!isRegistered)
-    return res.status(401).json({ success: false, status: 401, message: 'Invalid user credentials'})
+    if(!isRegistered) return res.status(401).json({ success: false, status: 401, message: 'Invalid user credentials'})
 
     const isPasswordMatch = await bcrypt.compare(password, isRegistered.password);
     if(!isPasswordMatch)
     return res.status(401).json({ success: false, status: 401, message: 'Invalid user credentials'})
 
-    // await User.findOneAndUpdate({ _id: \isRegistered._id }, { isOnline: true })
     const token = JWT.sign({ _id: isRegistered._id }, process.env.PASS_PHRASE, { expiresIn: '1d' })
     const exp = JWT.decode(token)
 
@@ -61,18 +56,6 @@ const login = async (req, res) => {
         token, user: isRegistered
     })
 }
-
-// const logout = async (req, res) => {
-//     try {
-//         const filter = { _id: req.params.id }
-//         const update = { isOnline: false }
-//         const doc = await User.findOneAndUpdate(filter, update, { new: true })
-//         console.log(doc)
-//         return res.status(200).send(doc)
-//     } catch (error) {
-//         return res.status(500).json({ status: 500, success: false, message: error.message });
-//     }
-// }
 
 const checkUserExists = async (userEmail) => {
     let foundUser = await User.findOne({ email: userEmail })
