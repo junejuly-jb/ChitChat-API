@@ -26,10 +26,13 @@ const sendMessage = async (req, res) => {
         chatRoomID = chatroom.data._id
     }
 
+    const people = [req.user._id, req.params.id]
+
     const newMessage = new Message({
         chatroomID: chatRoomID,
         sender: req.user._id,
         receiver: req.params.id,
+        participants: people,
         message
     })
     
@@ -65,7 +68,14 @@ const sendMessage = async (req, res) => {
 }
 
 const getChatrooms = async (req, res) => {
-    const chatrooms = await Chatroom.find({ "participants._id": req.user._id }).sort([['updatedAt', -1]])
+    const chatrooms = await Chatroom.find(
+        { 
+            "participants._id": req.user._id,
+            deleted: {
+                $nin: req.user._id
+            }
+        }
+    ).sort([['updatedAt', -1]])
     let chats = [];
 
     chatrooms.map( (el) => {
@@ -87,22 +97,33 @@ const getChatrooms = async (req, res) => {
     return res.status(200).json({ success: true, data: chats })
 }
 
+//TODO: SENDMESSAGE if the chatroom is deleted on the other end
 
 const getMessages = async (req, res) => {
-    const messages = await Message.find({ chatroomID: req.params.chatroomid, $or: [ { sender: req.user._id }, { receiver: req.user._id } ] }).sort([['createdAt', -1]])
+    const messages = await Message.find(
+        { chatroomID: req.params.chatroomid, participants: req.user._id, $or: [ { sender: req.user._id }, 
+        { receiver: req.user._id } ] }).sort([['createdAt', -1]])
     return res.status(200).json({ success: true, data: messages })
 }
 
 const deleteMessage = async (req, res) => {
     try {
-        const result = await Chatroom.deleteMany({ _id: req.params.chatroomid, "participants._id": req.user._id })
-        if(result.deletedCount == 0)
-        return res.status(500).json({ success: false, message: "Error deleting message" })
-
-        await Message.deleteMany({ chatroomID: req.params.chatroomid })
-        return res.status(200).json({ success: true, message: "Messages deleted successfully!!! "})
+        await Chatroom.findOneAndUpdate(
+            {'_id': new ObjectId(req.params.chatroomid)},
+            {
+                $push: { 
+                    deleted: req.user._id
+                }
+            }
+        )
+        await Message.updateMany({ chatroomID: req.params.chatroomid }, {
+            $pull: {
+                participants: req.user._id
+            }
+        })
+        return res.status(200).json({ success: true, status: 200, message: 'Message deleted successfully' })
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message })
+        return res.status(500).json({ success: false, status: 500, message: error.message })
     }
 }
 

@@ -10,7 +10,8 @@ const chatroomSchema = new Schema({
     unreadMessages: {
         type: Array,
         require: false
-    }
+    },
+    deleted: Array
 }, { timestamps: true })
 
 module.exports = mongoose.model('Chatroom', chatroomSchema)

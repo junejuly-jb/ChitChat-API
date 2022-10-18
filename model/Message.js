@@ -5,7 +5,8 @@ const messageSchema = new Schema({
     chatroomID: mongoose.Types.ObjectId,
     message: String,
     sender: mongoose.Types.ObjectId,
-    receiver: mongoose.Types.ObjectId
+    receiver: mongoose.Types.ObjectId,
+    participants: Array
 }, { timestamps: true })
 
 module.exports = mongoose.model('Message', messageSchema)
