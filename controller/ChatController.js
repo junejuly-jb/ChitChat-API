@@ -3,12 +3,23 @@ const Message = require("../model/Message");
 const pusher = require("../pusher")
 var ObjectId = require('mongoose').Types.ObjectId;
 
-const addChatRoom = async (participants) => {
-    const newChatRoom = new Chatroom({ participants })
+const addChatRoom = async (participants, sender) => {
+
+    let room = await Chatroom.findOneAndUpdate({ $and: [{"participants._id": participants[0]._id},{"participants._id": participants[1]._id}]}, { upsert: true})
+    if (room) {
+        if(room.deleted.includes(sender)){
+            room.deleted = room.deleted.filter( el => el !== sender)
+            console.log(room.deleted)
+            console.log(sender)
+        }
+    }
+    else{
+        room = new Chatroom({ participants })
+    }
 
     try {
-        await newChatRoom.save();
-        return { success: true, data: newChatRoom }
+        await room.save();
+        return { success: true, data: room }
     } catch (error) {
         return { success: false }
     }
@@ -20,7 +31,7 @@ const sendMessage = async (req, res) => {
     let chatroom
     
     if(chatRoomID.length == '0'){
-        chatroom = await addChatRoom(participants, message)
+        chatroom = await addChatRoom(participants, req.user._id)
         if(!chatroom.success) return res.status(500).json({ success: false, message: 'Error in sending message'})
 
         chatRoomID = chatroom.data._id
