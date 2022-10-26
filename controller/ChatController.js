@@ -27,6 +27,7 @@ const addChatRoom = async (participants, sender) => {
 
 
 const sendMessage = async (req, res) => {
+    
     let { participants, chatRoomID, message} = req.body
     let chatroom
     
@@ -52,8 +53,8 @@ const sendMessage = async (req, res) => {
 
         chatroom = await Chatroom.findOneAndUpdate(
             { _id: chatRoomID }, 
-            { lastMessage: message, $push: { unreadMessages: newMessage } }, 
-            { new: true}
+            { lastMessage: message, $push: { unreadMessages: newMessage }, $pull: { deleted: req.params.id} }, 
+            { new: true }
         ).lean()
 
         let chatRoomForTrigger = {...chatroom}
