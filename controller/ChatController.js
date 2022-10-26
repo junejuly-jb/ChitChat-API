@@ -94,6 +94,7 @@ const getChatrooms = async (req, res) => {
         let chat = {
             _id: el._id,
             lastMessage: el.lastMessage,
+            typing: el.typing,
             createdAt: el.createdAt,
             updatedAt: el.updatedAt,
             unreadMessages: el.unreadMessages
