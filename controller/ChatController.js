@@ -28,7 +28,7 @@ const addChatRoom = async (participants, sender) => {
 
 const sendMessage = async (req, res) => {
     
-    let { participants, chatRoomID, message} = req.body
+    let { participants, chatRoomID, message, messageClientID } = req.body
     let chatroom
     
     if(chatRoomID.length == '0'){
@@ -42,6 +42,7 @@ const sendMessage = async (req, res) => {
 
     const newMessage = new Message({
         chatroomID: chatRoomID,
+        messageClientID,
         sender: req.user._id,
         receiver: req.params.id,
         participants: people,
