@@ -7,7 +7,7 @@ const apiRoutes = require('./api/api')
 
 dotevn.config()
 
-mongoose.connect(process.env.DB_CONNECT_PROD, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(process.env.DB_CONNECT_LOCAL, { useNewUrlParser: true, useUnifiedTopology: true });
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function () {

@@ -4,7 +4,7 @@ const pusher = require("../pusher")
 var ObjectId = require('mongoose').Types.ObjectId;
 
 const addChatRoom = async (participants, sender) => {
-
+    
     let room = await Chatroom.findOneAndUpdate({ $and: [{"participants._id": participants[0]._id},{"participants._id": participants[1]._id}]}, { upsert: true})
     if (room) {
         if(room.deleted.includes(sender)){
