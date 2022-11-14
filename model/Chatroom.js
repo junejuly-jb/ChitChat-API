@@ -4,6 +4,7 @@ const Schema = mongoose.Schema
 const chatroomSchema = new Schema({
     participants: Array,
     typing: Array,
+    chatroomClientID: String,
     lastMessage: {
         type: String,
         require: false

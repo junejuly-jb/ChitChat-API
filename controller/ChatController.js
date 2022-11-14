@@ -29,6 +29,7 @@ const addChatRoom = async (participants, sender) => {
 const sendMessage = async (req, res) => {
     
     let { participants, chatRoomID, message, messageClientID } = req.body
+
     let chatroom
     
     if(chatRoomID.length == '0'){
@@ -49,12 +50,18 @@ const sendMessage = async (req, res) => {
         message
     })
     
+    const unread = {
+        _id: newMessage._id,
+        chatRoomID: newMessage.chatroomID,
+        sender: newMessage.sender,
+        receiver: req.params.id
+    }
     try {
         await newMessage.save();
 
         chatroom = await Chatroom.findOneAndUpdate(
             { _id: chatRoomID }, 
-            { lastMessage: message, $push: { unreadMessages: newMessage }, $pull: { deleted: req.params.id} }, 
+            { lastMessage: message, $push: { unreadMessages: unread }, $pull: { deleted: req.params.id} }, 
             { new: true }
         ).lean()
 
@@ -65,6 +72,8 @@ const sendMessage = async (req, res) => {
             }
         })
         chatRoomForTrigger.messages = []
+        chatRoomForTrigger.unreadMessages = []
+
 
         chatroom.participants.map( user => {
             if(user._id != req.user._id){
@@ -73,8 +82,14 @@ const sendMessage = async (req, res) => {
         })
         chatroom.messages = []
 
-        pusher.trigger("chitchat", "chat-" + req.params.id, { data: newMessage, chatroom: chatRoomForTrigger } );
-        return res.status(200).json({ success: true, message: 'Message sent', data: newMessage, chatroom})
+        let pusherData = { data: newMessage, chatroom: chatRoomForTrigger }
+        pusher.trigger("chitchat", "chat-" + req.params.id, JSON.stringify(pusherData));
+        return res.status(200).json({ 
+            success: true, 
+            message: 'Message sent', 
+            data: newMessage, 
+            chatroom
+        })
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message})
     }
@@ -147,7 +162,7 @@ const readMessages = async (req, res) => {
             { _id: new ObjectId(req.params.chatroomid) },  
             {
                 $pull :{
-                    unreadMessages: { receiver: new ObjectId(req.user._id) }
+                    unreadMessages: { receiver: req.user._id }
                 }
             },
             { new: true, multi: true }
