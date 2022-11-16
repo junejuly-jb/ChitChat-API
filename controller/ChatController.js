@@ -9,8 +9,6 @@ const addChatRoom = async (participants, sender) => {
     if (room) {
         if(room.deleted.includes(sender)){
             room.deleted = room.deleted.filter( el => el !== sender)
-            console.log(room.deleted)
-            console.log(sender)
         }
     }
     else{
@@ -28,21 +26,21 @@ const addChatRoom = async (participants, sender) => {
 
 const sendMessage = async (req, res) => {
     
-    let { participants, chatRoomID, message, messageClientID } = req.body
+    let { participants, chatroomID, message, messageClientID } = req.body
 
     let chatroom
     
-    if(chatRoomID.length == '0'){
+    if(chatroomID.length == '0'){
         chatroom = await addChatRoom(participants, req.user._id)
         if(!chatroom.success) return res.status(500).json({ success: false, message: 'Error in sending message'})
 
-        chatRoomID = chatroom.data._id
+        chatroomID = chatroom.data._id
     }
 
     const people = [req.user._id, req.params.id]
 
     const newMessage = new Message({
-        chatroomID: chatRoomID,
+        chatroomID: chatroomID,
         messageClientID,
         sender: req.user._id,
         receiver: req.params.id,
@@ -52,7 +50,7 @@ const sendMessage = async (req, res) => {
     
     const unread = {
         _id: newMessage._id,
-        chatRoomID: newMessage.chatroomID,
+        chatroomID: newMessage.chatroomID,
         sender: newMessage.sender,
         receiver: req.params.id
     }
@@ -60,7 +58,7 @@ const sendMessage = async (req, res) => {
         await newMessage.save();
 
         chatroom = await Chatroom.findOneAndUpdate(
-            { _id: chatRoomID }, 
+            { _id: chatroomID }, 
             { lastMessage: message, $push: { unreadMessages: unread }, $pull: { deleted: req.params.id} }, 
             { new: true }
         ).lean()

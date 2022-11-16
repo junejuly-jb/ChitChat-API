@@ -11,7 +11,6 @@ api.post('/pusher/user-auth', auth, AuthController.authPusher)
 
 //user
 api.get('/users', auth, UserController.getUsers)
-api.post('/test', UserController.test)
 
 //messaging
 api.post('/send/:id', auth, ChatController.sendMessage)
