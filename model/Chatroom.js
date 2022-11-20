@@ -5,6 +5,11 @@ const chatroomSchema = new Schema({
     participants: Array,
     typing: Array,
     chatroomClientID: String,
+    theme: {
+        type: String,
+        default: 'rgb(69, 142, 247)',
+        required: true,
+    },
     lastMessage: {
         type: String,
         require: false
