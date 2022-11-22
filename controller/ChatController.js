@@ -111,7 +111,9 @@ const getChatrooms = async (req, res) => {
             typing: el.typing,
             createdAt: el.createdAt,
             updatedAt: el.updatedAt,
-            unreadMessages: el.unreadMessages
+            unreadMessages: el.unreadMessages,
+            theme: el.theme,
+            emoji: el.emoji
         }
         el.participants.map( user => {
             if(user._id != req.user._id){

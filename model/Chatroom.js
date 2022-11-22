@@ -10,6 +10,11 @@ const chatroomSchema = new Schema({
         default: 'rgb(69, 142, 247)',
         required: true,
     },
+    emoji: {
+        type: String,
+        required: true,
+        default: '👍'
+    },
     lastMessage: {
         type: String,
         require: false
